@@ -1,0 +1,35 @@
+server:
+  port: 8080
+
+eureka:
+  client:
+    service-url:
+      # this is the url of the eureka server
+      # defaultZone is the url of the eureka server
+      defaultZone: http://localhost:8761/eureka/
+
+# Example route config (to be updated as you add services)
+spring:
+  application:
+    name: api-gateway
+  # cloud is the namespace for the gateway
+  cloud:
+    # gateway is the namespace for the gateway
+    gateway:
+      # routes is the namespace for the routes
+      routes:
+        # id is the id of the route
+        # uri is the uri of the service
+        # predicates is the predicates for the route
+        # Path is the path of the route
+        # lb is the load balancer for the route
+        # http://localhost:8080/users/** is the path of the route
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+        # similarly for url-service
+        - id: url-service
+          uri: lb://url-service
+          predicates:
+            - Path=/urls/**
