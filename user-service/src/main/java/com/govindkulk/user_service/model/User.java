@@ -282,4 +282,70 @@ public class User implements UserDetails {
                 ", name='" + name + '\'' +
                 '}';
     }
-} 
+
+
+    // 😊 just for fun builder pattern for user
+    public static class UserBuilder {
+
+        private User user;
+
+        public UserBuilder(){
+            user = new User();
+        }
+
+
+        public UserBuilder setUsername(String username) {
+            user.username = username;
+            return this;
+        }
+
+        public UserBuilder setPassword(String password) {
+            user.password = password;
+            return this;
+        }
+
+        public UserBuilder setEmail(String email) {
+            user.email = email;
+            return this;
+        }
+
+        public UserBuilder setEnabled(boolean enabled) {
+            user.enabled = enabled;
+            return this;
+        }
+
+        public UserBuilder setRoles(Set<String> roles) {
+            user.roles = roles;
+            return this;
+        }
+
+        public UserBuilder setOauth2Provider(String oauth2Provider) {
+            user.oauth2Provider = oauth2Provider;
+            return this;
+        }
+
+        public UserBuilder setOauth2Id(String oauth2Id) {
+            user.oauth2Id = oauth2Id;
+            return this;
+        }
+
+        public UserBuilder setName(String name) {
+            user.name = name;
+            return this;
+        }
+
+        public UserBuilder setPictureUrl(String pictureUrl) {
+            user.pictureUrl = pictureUrl;
+            return this;
+        }
+
+        public User build() {
+            return user;
+        }
+    }
+
+
+    public static UserBuilder builder() {
+        return new UserBuilder();
+    }
+}
