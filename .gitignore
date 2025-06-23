@@ -1,0 +1,6 @@
+target/
+*/target
+.idea
+.cursor
+.DS_Store
+.env
