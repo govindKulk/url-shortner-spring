@@ -14,7 +14,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.govindkulk.user_service.jwt.JwtAuthFilter;
 import com.govindkulk.user_service.service.CustomUserDetailsService;
 
 
@@ -27,10 +29,11 @@ public class SecurityConfig {
     // Remaining Beans
     // 1. OAuth2UserService Oidc
     // 2. Oauth2userservice oauth2
-    // 3. authentication provider
-    // 4. authentication manager.
     @Autowired
     private CustomUserDetailsService userDetailsService;
+
+    @Autowired
+    private JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -43,14 +46,16 @@ public class SecurityConfig {
 
         http.
             authorizeHttpRequests(auth -> 
-                auth.requestMatchers("*").permitAll()
+                auth.requestMatchers("/api/auth/**").permitAll()
+                    .anyRequest().authenticated()
             )
             .csrf(csrf -> csrf.disable())
             .httpBasic(basic -> basic.disable())
             .formLogin(form -> form.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .headers(headers -> headers.frameOptions().disable());
-
+            .headers(headers -> headers.frameOptions().disable())
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            
         return http.build();
     }
 
