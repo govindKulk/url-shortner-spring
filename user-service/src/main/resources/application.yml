@@ -2,8 +2,49 @@ spring:
   application:
     name: user-service
 
+  datasource:
+    url: jdbc:h2:mem:urlshortner
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # jpa configuration
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+        hibernate:
+          format_sql: true
+          dialect: org.hibernate.dialect.H2Dialect
+          use_sql_comments: true
+          type: trace
+
 server:
   port: 8081
+
+# Logging Configuration
+logging:
+  level:
+    com.example.security: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+
+# JWT Configuration
+jwt:
+  secret: "${JWT-SECRET}:your-super-secret-jwt-key-that-is-at-least-256-bits-long-for-hs256-algorithm"
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+  issuer: "url-shortner-application"
 
 # eureka:
 #   client:
