@@ -1,5 +1,7 @@
 package com.govindkulk.user_service.controller;
 
+import java.net.URI;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,6 +15,7 @@ import com.govindkulk.user_service.dto.AuthResponse;
 import com.govindkulk.user_service.dto.LoginRequest;
 import com.govindkulk.user_service.dto.RegisterRequest;
 import com.govindkulk.user_service.dto.TokenResponse;
+import com.govindkulk.user_service.exception.UnauthorizedException;
 import com.govindkulk.user_service.service.AuthService;
 
 /**
@@ -36,9 +39,14 @@ public class AuthController {
      * POST /api/auth/register
      */
     @PostMapping("/register")
-    public ResponseEntity<TokenResponse> register(@RequestBody RegisterRequest request) {
-        TokenResponse response = authService.register(request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<? extends TokenResponse> register(@RequestBody RegisterRequest request) {
+
+       
+            TokenResponse response = authService.register(request);
+
+
+            return ResponseEntity.created(URI.create("/api/auth/register")).body(response);
+         
     }
 
     /**
@@ -57,6 +65,9 @@ public class AuthController {
      */
     @GetMapping("/me")
     public ResponseEntity<AuthResponse> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+
+        System.out.println("AuthHeader: " + authHeader);
+        
         AuthResponse response = authService.getCurrentUser();
         
         if (response.isSuccess()) {
@@ -72,6 +83,8 @@ public class AuthController {
      */
     @PostMapping("/validate")
     public ResponseEntity<AuthResponse> validateToken(@RequestHeader("Authorization") String authHeader) {
+
+        
         AuthResponse response = authService.getCurrentUser();
         
         if (response.isSuccess()) {

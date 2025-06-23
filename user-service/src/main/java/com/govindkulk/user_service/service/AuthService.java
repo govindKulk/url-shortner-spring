@@ -6,6 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,8 @@ import com.govindkulk.user_service.dto.AuthResponse;
 import com.govindkulk.user_service.dto.LoginRequest;
 import com.govindkulk.user_service.dto.RegisterRequest;
 import com.govindkulk.user_service.dto.TokenResponse;
+import com.govindkulk.user_service.exception.UnauthorizedException;
+import com.govindkulk.user_service.exception.UserAlreadyExistsException;
 import com.govindkulk.user_service.jwt.JwtTokenUtil;
 import com.govindkulk.user_service.model.User;
 import com.govindkulk.user_service.repository.UserRepository;
@@ -27,6 +30,8 @@ import java.util.Set;
  * auth service for authentication business logic
  * customuserdetailservice is for spring security 
  */
+
+@Service
 public class AuthService {
 
     @Autowired
@@ -51,12 +56,12 @@ public class AuthService {
 
         // check if user already exists
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("User already exists");
+            throw new UserAlreadyExistsException("User already exists");
         }
 
         // check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
+            throw new UserAlreadyExistsException("Email already exists");
         }
 
         // just for fun ive used custom builder pattern for user
@@ -82,6 +87,13 @@ public class AuthService {
 
     public TokenResponse login(LoginRequest request) {
 
+        // check if user exists
+        if (!userRepository.existsByUsername(request.getUsername())) {
+            throw new UsernameNotFoundException("User not found");
+        }
+
+        // check if password is correct
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
@@ -105,7 +117,8 @@ public class AuthService {
         if (authentication == null ||
                 !authentication.isAuthenticated() ||
                 "anonymousUser".equals(authentication.getName())) {
-            return AuthResponse.error("No user logged in");
+                    
+            throw new UnauthorizedException("No user logged in from service.");
         }
 
         String username = authentication.getName();
@@ -113,7 +126,7 @@ public class AuthService {
         Optional<User> userOpt = userRepository.findByUsername(username);
 
         if (userOpt.isEmpty()) {
-            return AuthResponse.error("User not found");
+            throw new UsernameNotFoundException("Username not found.");
         }
 
         User user = userOpt.get();
@@ -134,7 +147,7 @@ public class AuthService {
     public TokenResponse refreshToken(String refreshToken) {
         // Validate refresh token
         if (!jwtTokenUtil.validateRefreshToken(refreshToken)) {
-            throw new RuntimeException("Invalid refresh token");
+            throw new UnauthorizedException("Unauthorized Refresh Token");
         }
 
         // Extract username and load user details
