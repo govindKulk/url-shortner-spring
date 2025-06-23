@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: service-discovery
+
+server:
+  port: 8761
+
+eureka:
+  client:
+    # this option is used to register the service with the eureka server
+    # we have to set it to false because we are not running the service as a client
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    # this option is used to wait for the service to be registered with the eureka server
+    # we have to set it to 0 because we are not running the service as a client
+    wait-time-in-ms-when-sync-empty: 0
+    
