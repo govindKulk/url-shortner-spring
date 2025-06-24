@@ -46,7 +46,7 @@ jwt:
   refresh-token-expiration: 604800000
   issuer: "url-shortner-application"
 
-# eureka:
-#   client:
-#     service-url:
-#       defaultZone: http://localhost:8761/eureka/
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
