@@ -77,7 +77,7 @@ public class AuthService {
 
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(request.getUsername());
 
-        Map<String, String> tokens = jwtTokenUtil.generateTokenPair(userDetails);
+        Map<String, String> tokens = jwtTokenUtil.generateTokenPair(userDetails, user.getId());
         return new TokenResponse(
                 tokens.get("accessToken"),
                 tokens.get("refreshToken"),
@@ -87,10 +87,10 @@ public class AuthService {
 
     public TokenResponse login(LoginRequest request) {
 
-        // check if user exists
-        if (!userRepository.existsByUsername(request.getUsername())) {
-            throw new UsernameNotFoundException("User not found");
-        }
+       Optional<User> user = userRepository.findByUsername(request.getUsername());
+       if (user.isEmpty()) {
+        throw new UsernameNotFoundException("User not found");
+       }
 
         // check if password is correct
 
@@ -98,8 +98,7 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.getUsername(), request.getPassword()));
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-        Map<String, String> tokens = jwtTokenUtil.generateTokenPair(userDetails);
+        Map<String, String> tokens = jwtTokenUtil.generateTokenPair(userDetails, user.get().getId());
         return new TokenResponse(
                 tokens.get("accessToken"),
                 tokens.get("refreshToken"),
@@ -135,7 +134,7 @@ public class AuthService {
 
         // Generate tokens
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
-        Map<String, String> tokens = jwtTokenUtil.generateTokenPair(userDetails);
+        Map<String, String> tokens = jwtTokenUtil.generateTokenPair(userDetails, user.getId());
 
         return AuthResponse.success(
                 "Current user info",
@@ -154,8 +153,13 @@ public class AuthService {
         String username = jwtTokenUtil.extractUsername(refreshToken);
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
 
+        Optional<User> user = userRepository.findByUsername(username);
+        if (user.isEmpty()) {
+            throw new UsernameNotFoundException("User not found");
+        }
+
         // Generate new token pair
-        Map<String, String> tokens = jwtTokenUtil.generateTokenPair(userDetails);
+        Map<String, String> tokens = jwtTokenUtil.generateTokenPair(userDetails, user.get().getId());
 
         return new TokenResponse(
                 tokens.get("accessToken"),
@@ -190,7 +194,7 @@ public class AuthService {
 
             // Generate tokens
             UserDetails userDetails = customUserDetailsService.loadUserByUsername(user.getUsername());
-            Map<String, String> tokens = jwtTokenUtil.generateTokenPair(userDetails);
+            Map<String, String> tokens = jwtTokenUtil.generateTokenPair(userDetails, user.getId());
 
             return AuthResponse.success(
                     "Login successful",

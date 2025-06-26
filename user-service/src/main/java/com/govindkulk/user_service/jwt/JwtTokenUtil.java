@@ -26,28 +26,32 @@ public class JwtTokenUtil {
     /**
      * Generate access token for a user
      */
-    public String generateAccessToken(UserDetails userDetails) {
+    public String generateAccessToken(UserDetails userDetails , Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "ACCESS");
+        claims.put("userid", userId);
+        
+        // use userId for subject
         return createToken(claims, userDetails.getUsername(), jwtConfig.getAccessTokenExpiration());
     }
-
+    
     /**
      * Generate refresh token for a user
      */
-    public String generateRefreshToken(UserDetails userDetails) {
+    public String generateRefreshToken(UserDetails userDetails, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("type", "REFRESH");
+        claims.put("userid", userId);
         return createToken(claims, userDetails.getUsername(), jwtConfig.getRefreshTokenExpiration());
     }
 
     /**
      * Generate both access and refresh tokens
      */
-    public Map<String, String> generateTokenPair(UserDetails userDetails) {
+    public Map<String, String> generateTokenPair(UserDetails userDetails, Long userId) {
         Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", generateAccessToken(userDetails));
-        tokens.put("refreshToken", generateRefreshToken(userDetails));
+        tokens.put("accessToken", generateAccessToken(userDetails, userId));
+        tokens.put("refreshToken", generateRefreshToken(userDetails, userId));
         return tokens;
     }
 
