@@ -37,7 +37,7 @@ public class UrlShorteningService {
             shortUrl = generateRandomShortUrl(SHORT_URL_LENGTH);
         }
         
-        return userId.toString().substring(2).concat(shortUrl);
+        return shortUrl;
     }
 
     /**
