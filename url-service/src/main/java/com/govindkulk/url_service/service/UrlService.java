@@ -5,11 +5,17 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.govindkulk.url_service.dto.CreateShortUrlResponse;
+import com.govindkulk.url_service.exception.UrlNotFoundException;
 import com.govindkulk.url_service.model.UrlMapping;
 import com.govindkulk.url_service.repository.UrlMappingRepository;
 
+
+
 @Service
+@Transactional
 public class UrlService {
     
     private final UrlMappingRepository urlMappingRepository;
@@ -21,23 +27,40 @@ public class UrlService {
         this.urlShorteningService = urlShorteningService;
     }
 
-    public UrlMapping createShortUrl(String originalUrl, Long userId){
+    public CreateShortUrlResponse createShortUrl(String originalUrl, Long userId){
 
         String shortUrl = urlShorteningService.generateShortUrl(originalUrl, userId);
+
+        if(urlMappingRepository.findByShortUrl(shortUrl).isPresent()){
+            CreateShortUrlResponse.error("Short url already exists");
+        }
+
+        System.out.println("shortUrl: from service " + shortUrl);
         UrlMapping urlMapping = new UrlMapping(originalUrl, shortUrl, userId, LocalDateTime.now(), LocalDateTime.now().plusDays(7), 0);
         urlMappingRepository.save(urlMapping);
-        return urlMapping;
+        return CreateShortUrlResponse.success(shortUrl, originalUrl, "Short url created successfully");
     }
 
-    public UrlMapping getOriginalUrl(String shortUrl){
-        Optional<UrlMapping> urlMapping = urlMappingRepository.findByShortUrl(shortUrl);
-    
+    public UrlMapping getOriginalUrlByShortUrlAndUserId(String shortUrl, Long userId){
+        Optional<UrlMapping> urlMapping = urlMappingRepository.findByShortUrlAndUserId(shortUrl, userId);
+        
+        if(urlMapping.isEmpty()){
+            throw new UrlNotFoundException("Url not found for user " + userId);
+        }
         
         return urlMapping.get();
     }
 
+    public UrlMapping getOriginalUrlByShortUrl(String shortUrl){
+        Optional<UrlMapping> urlMapping = urlMappingRepository.findByShortUrl(shortUrl);
+        if(urlMapping.isEmpty()){
+            throw new UrlNotFoundException("Url not found");
+        }
+        return urlMapping.get();
+    }
+
     public void updateClickCount(String shortUrl){
-        UrlMapping urlMapping = getOriginalUrl(shortUrl);
+        UrlMapping urlMapping = getOriginalUrlByShortUrl(shortUrl);
         urlMapping.setClickCount(urlMapping.getClickCount() + 1);
         urlMappingRepository.save(urlMapping);
     }
@@ -46,6 +69,18 @@ public class UrlService {
     public List<UrlMapping> getAllUrlsByUserId(Long userId){
         return urlMappingRepository.findByUserId(userId);
     }
+
+    public void deleteUrl(String shortUrl, Long userId){
+
+        Optional<UrlMapping> urlMapping = urlMappingRepository.findByShortUrlAndUserId(shortUrl, userId);
+
+        if(urlMapping.isEmpty()){
+            throw new UrlNotFoundException("Url not found");
+        }   
+        urlMappingRepository.deleteByShortUrlAndUserId(shortUrl, userId);
+    }
+
+
 
 
   

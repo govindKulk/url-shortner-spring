@@ -5,6 +5,7 @@ import com.govindkulk.url_service.repository.UrlMappingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -33,9 +34,10 @@ public class UrlShorteningService {
         String shortUrl = generateHashBasedShortUrl(originalUrl.concat(userId.toString()));
         
         // If hash-based fails due to collision, try random generation
-        if (shortUrl == null) {
+        if (shortUrl == null || !isShortUrlUnique(shortUrl))  {
             shortUrl = generateRandomShortUrl(SHORT_URL_LENGTH);
         }
+
         
         return shortUrl;
     }
@@ -49,14 +51,20 @@ public class UrlShorteningService {
             // Create hash of original URL
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = md.digest(originalUrl.getBytes());
+
+            System.out.println("hashBytes: " + hashBytes.toString());
             
             // Convert to base62
             String shortUrl = bytesToBase62(hashBytes, SHORT_URL_LENGTH);
+
+            System.out.println("shortUrl: " + shortUrl);
             
             // Check for collision
             if (isShortUrlUnique(shortUrl)) {
                 return shortUrl;
             }
+
+            System.out.println("collision for " +  originalUrl);
             
             // If collision, try with different length
             return bytesToBase62(hashBytes, SHORT_URL_LENGTH + 1);
@@ -72,19 +80,23 @@ public class UrlShorteningService {
      * Convert byte array to base62 string
      */
     private String bytesToBase62(byte[] bytes, int length) {
+
+        if(length > MAX_URL_LENGTH){
+            return null;
+        }
         StringBuilder result = new StringBuilder();
         
         // Convert bytes to a large number
-        long num = 0;
-        for (byte b : bytes) {
-            num = (num << 8) | (b & 0xFF);
+        BigInteger bigint = new BigInteger(1, bytes);
+        System.out.println("bigint: " + bigint.toString());
+        while(bigint.compareTo(BigInteger.ZERO) > 0){   
+            int index = bigint.mod(BigInteger.valueOf(62)).intValue();
+            result.append(BASE62_CHARS.charAt(index));
+            bigint = bigint.divide(BigInteger.valueOf(62));
         }
+        System.out.println("bigint: " + bigint.toString());
+       
         
-        // Convert to base62
-        while (num > 0 && result.length() < length) {
-            result.insert(0, BASE62_CHARS.charAt((int) (num % 62)));
-            num /= 62;
-        }
         
         // Pad with zeros if needed
         while (result.length() < length) {
