@@ -1,0 +1,12 @@
+# JWT Configuration - Shared across all services
+jwt:
+  secret: "${JWT_SECRET:my-super-secret-jwt-key-that-is-at-least-32-characters-long}"
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+  issuer: "url-shortner-application"
+
+# Eureka Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
