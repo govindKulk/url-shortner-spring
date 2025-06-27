@@ -1,0 +1,143 @@
+"use client"
+
+import { useState } from "react"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { registerSchema } from "@/lib/validations"
+import { type RegisterRequest } from "@/types"
+import { apiService } from "@/lib/api"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { toast } from "sonner"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
+
+interface RegisterFormProps {
+  onSuccess: () => void
+  onSwitchToLogin: () => void
+}
+
+export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps) {
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RegisterRequest>({
+    resolver: zodResolver(registerSchema),
+  })
+
+  const onSubmit = async (data: RegisterRequest) => {
+    setIsLoading(true)
+    try {
+      const response = await apiService.register(data)
+      
+      // Store tokens and user info
+      localStorage.setItem("accessToken", response.access_token)
+      localStorage.setItem("refreshToken", response.refresh_token)
+      
+      // Get user info to store userId
+      const userInfo = await apiService.getCurrentUser()
+      if (userInfo.username) {
+        localStorage.setItem("username", userInfo.username)
+        localStorage.setItem("userId", "1") // Assuming userId is 1 for now
+      }
+      
+      toast.success("Registration successful!")
+      onSuccess()
+    } catch (error) {
+      toast.error("Registration failed. Please try again.")
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  return (
+    <Card className="w-full max-w-md">
+      <CardHeader>
+        <CardTitle>Create account</CardTitle>
+        <CardDescription>Enter your details to create a new account</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              {...register("username")}
+              placeholder="Username"
+              disabled={isLoading}
+            />
+            {errors.username && (
+              <p className="text-sm text-red-500">{errors.username.message}</p>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Input
+              {...register("email")}
+              type="email"
+              placeholder="Email"
+              disabled={isLoading}
+            />
+            {errors.email && (
+              <p className="text-sm text-red-500">{errors.email.message}</p>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <div className="relative">
+              <Input
+                {...register("password")}
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                disabled={isLoading}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={isLoading}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+            {errors.password && (
+              <p className="text-sm text-red-500">{errors.password.message}</p>
+            )}
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating account...
+              </>
+            ) : (
+              "Create account"
+            )}
+          </Button>
+        </form>
+
+        <div className="mt-4 text-center">
+          <p className="text-sm text-gray-600">
+            Already have an account?{" "}
+            <button
+              type="button"
+              onClick={onSwitchToLogin}
+              className="text-blue-600 hover:underline"
+            >
+              Sign in
+            </button>
+          </p>
+        </div>
+      </CardContent>
+    </Card>
+  )
+} 
