@@ -24,7 +24,6 @@ import com.govindkulk.user_service.service.AuthService;
  */
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Allow CORS for development
 public class AuthController {
 
     

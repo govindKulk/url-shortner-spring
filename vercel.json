@@ -1,0 +1,6 @@
+{
+  "buildCommand": "cd url-shortener-frontend && npm install && npm run build",
+  "outputDirectory": "url-shortener-frontend/.next",
+  "installCommand": "cd url-shortener-frontend && npm install",
+  "framework": "nextjs"
+} 
