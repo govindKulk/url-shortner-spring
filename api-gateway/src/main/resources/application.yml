@@ -27,6 +27,18 @@ spring:
               uri: lb://url-service
               predicates:
                 - Path=/api/urls/**, /[a-zA-Z0-9]+
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins: "http://localhost:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
 
 eureka:
   client:
