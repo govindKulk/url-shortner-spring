@@ -40,9 +40,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         String authHeader = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            
+            System.out.println("authHeader is null");
             return chain.filter(exchange);
         }
         
+        System.out.println("authHeader: " + authHeader);
         String token = authHeader.substring(7);
         
         if (jwtUtil.validateToken(token)) {
@@ -70,6 +73,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     }
     
     private boolean shouldSkipAuthentication(String path) {
+
         // Skip authentication for redirects (short URLs)
         if (path.matches("/[a-zA-Z0-9]+")) {
             return true;

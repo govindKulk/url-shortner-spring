@@ -8,22 +8,91 @@ import { UrlList } from "@/components/url/UrlList"
 import { Button } from "@/components/ui/button"
 import { LogOut, User } from "lucide-react"
 import { toast } from "sonner"
+import { jwtDecode } from "jwt-decode"
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [showRegister, setShowRegister] = useState(false)
   const [username, setUsername] = useState<string | null>(null)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if user is authenticated on mount
     const token = localStorage.getItem("accessToken")
     const storedUsername = localStorage.getItem("username")
-    
-    if (token && storedUsername) {
-      setIsAuthenticated(true)
-      setUsername(storedUsername)
+
+    if (!token || !storedUsername) {
+      setIsAuthenticated(false)
+      setUsername(null)
+      setLoading(false)
+      return
     }
+
+    // Check for cached user info (5 min cache)
+    const cachedMe = sessionStorage.getItem("meCache")
+    if (cachedMe) {
+      const { data, timestamp } = JSON.parse(cachedMe)
+      if (Date.now() - timestamp < 5 * 60 * 1000) {
+        setIsAuthenticated(true)
+        setUsername(data.username)
+        setLoading(false)
+        return
+      } else {
+        sessionStorage.removeItem("meCache")
+      }
+    }
+
+    // Decode token and check expiry
+    try {
+      const decoded: any = jwtDecode(token)
+      if (decoded.exp && Date.now() >= decoded.exp * 1000) {
+        // Token expired
+        localStorage.removeItem("accessToken")
+        localStorage.removeItem("refreshToken")
+        localStorage.removeItem("username")
+        localStorage.removeItem("userId")
+        setIsAuthenticated(false)
+        setUsername(null)
+        setLoading(false)
+        return
+      }
+    } catch (e) {
+      // Invalid token
+      localStorage.removeItem("accessToken")
+      localStorage.removeItem("refreshToken")
+      localStorage.removeItem("username")
+      localStorage.removeItem("userId")
+      setIsAuthenticated(false)
+      setUsername(null)
+      setLoading(false)
+      return
+    }
+
+    // Validate token with backend
+    fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => {
+        if (!res.ok) throw new Error("Invalid token")
+        return res.json()
+      })
+      .then(data => {
+        setIsAuthenticated(true)
+        setUsername(data.username)
+        // Cache for 5 minutes
+        sessionStorage.setItem("meCache", JSON.stringify({ data, timestamp: Date.now() }))
+        setLoading(false)
+      })
+      .catch(() => {
+        // Token invalid or expired
+        localStorage.removeItem("accessToken")
+        localStorage.removeItem("refreshToken")
+        localStorage.removeItem("username")
+        localStorage.removeItem("userId")
+        setIsAuthenticated(false)
+        setUsername(null)
+        setLoading(false)
+      })
   }, [])
 
   const handleAuthSuccess = () => {
@@ -61,6 +130,14 @@ export default function Home() {
             />
           )}
         </div>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-lg text-gray-600">Loading...</div>
       </div>
     )
   }

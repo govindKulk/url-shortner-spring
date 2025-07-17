@@ -77,7 +77,7 @@ class ApiService {
   async createShortUrl(urlData: CreateUrlRequest): Promise<CreateShortUrlResponse> {
     const response = await fetch(`${API_BASE_URL}/api/urls`, {
       method: 'POST',
-      headers: this.getUserIdHeader(),
+      headers: {...this.getUserIdHeader(), ...this.getAuthHeaders()},
       body: JSON.stringify(urlData),
     })
 
