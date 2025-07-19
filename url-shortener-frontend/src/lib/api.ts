@@ -90,7 +90,7 @@ class ApiService {
 
   async getUserUrls(): Promise<UrlMapping[]> {
     const response = await fetch(`${API_BASE_URL}/api/urls`, {
-      headers: this.getUserIdHeader(),
+      headers: {...this.getUserIdHeader(), ...this.getAuthHeaders()},
     })
 
     if (!response.ok) {
@@ -103,7 +103,7 @@ class ApiService {
   async deleteUrl(shortUrl: string): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/api/urls/${shortUrl}`, {
       method: 'DELETE',
-      headers: this.getUserIdHeader(),
+      headers: {...this.getUserIdHeader(), ...this.getAuthHeaders()},
     })
 
     if (!response.ok) {
@@ -113,7 +113,7 @@ class ApiService {
 
   async getUrlStats(shortUrl: string): Promise<UrlMapping> {
     const response = await fetch(`${API_BASE_URL}/api/urls/stats/${shortUrl}`, {
-      headers: this.getUserIdHeader(),
+      headers: {...this.getUserIdHeader(), ...this.getAuthHeaders()},
     })
 
     if (!response.ok) {

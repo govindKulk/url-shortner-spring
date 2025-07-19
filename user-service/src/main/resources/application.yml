@@ -3,33 +3,34 @@ spring:
     name: user-service
 
   datasource:
-    url: jdbc:h2:mem:urlshortner
-    driver-class-name: org.h2.Driver
-    username: sa
-    password: password
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-
+    url: ${DB_URL:jdbc:postgresql://postgres:5432/userdb}
+    username: ${DB_USER:user}
+    password: ${DB_PASS:password}
+    driver-class-name: org.postgresql.Driver
   # jpa configuration
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     properties:
         hibernate:
           format_sql: true
-          dialect: org.hibernate.dialect.H2Dialect
+          dialect: org.hibernate.dialect.PostgreSQLDialect
           use_sql_comments: true
           type: trace
 
-  profiles:
-    include: shared
-  
-  config:
-    import: file:../shared-config/application.yml
+
+jwt:
+  secret: ${JWT_SECRET:my-super-secret-jwt-key-that-is-at-least-32-characters-long}
+  access-token-expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}
+  refresh-token-expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}
+  issuer: ${JWT_ISSUER:url-shortner-application}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
 
 server:
   port: 8081

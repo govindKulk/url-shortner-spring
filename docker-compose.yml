@@ -1,0 +1,71 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: url_shortener_postgres
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-multi-db.sh:/docker-entrypoint-initdb.d/init-multi-db.sh
+
+  service-discovery:
+    image: service-discovery:latest
+    container_name: service-discovery
+    ports:
+      - "8761:8761"
+    environment:
+      - EUREKA_SERVER_URL=http://service-discovery:8761/eureka
+
+  api-gateway:
+    image: api-gateway:latest
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - EUREKA_SERVER_URL=http://service-discovery:8761/eureka
+      - JWT_SECRET=my-super-secret-jwt-key-that-is-at-least-32-characters-long
+      - JWT_ACCESS_TOKEN_EXPIRATION=900000
+      - JWT_REFRESH_TOKEN_EXPIRATION=604800000
+      - JWT_ISSUER=url-shortner-application
+    depends_on:
+      - service-discovery
+
+  user-service:
+    image: user-service:latest
+    container_name: user-service
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/userdb
+      - DB_USER=user
+      - DB_PASS=password
+      - EUREKA_SERVER_URL=http://service-discovery:8761/eureka
+      - JWT_SECRET=my-super-secret-jwt-key-that-is-at-least-32-characters-long
+      - JWT_ACCESS_TOKEN_EXPIRATION=900000
+      - JWT_REFRESH_TOKEN_EXPIRATION=604800000
+      - JWT_ISSUER=url-shortner-application
+    depends_on:
+      - postgres
+      - service-discovery
+
+  url-service:
+    image: url-service:latest
+    container_name: url-service
+    ports:
+      - "8082:8082"
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/urldb
+      - DB_USER=user
+      - DB_PASS=password
+      - EUREKA_SERVER_URL=http://service-discovery:8761/eureka
+    depends_on:
+      - postgres
+      - service-discovery
+
+volumes:
+  pgdata: 

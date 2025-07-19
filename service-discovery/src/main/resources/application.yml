@@ -11,6 +11,8 @@ eureka:
     # we have to set it to false because we are not running the service as a client
     register-with-eureka: false
     fetch-registry: false
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka}
   server:
     # this option is used to wait for the service to be registered with the eureka server
     # we have to set it to 0 because we are not running the service as a client
