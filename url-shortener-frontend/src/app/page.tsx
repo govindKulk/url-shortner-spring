@@ -8,7 +8,7 @@ import { UrlList } from "@/components/url/UrlList"
 import { Button } from "@/components/ui/button"
 import { LogOut, User } from "lucide-react"
 import { toast } from "sonner"
-import { jwtDecode } from "jwt-decode"
+import { jwtDecode, JwtPayload } from "jwt-decode"
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
@@ -44,7 +44,7 @@ export default function Home() {
 
     // Decode token and check expiry
     try {
-      const decoded: any = jwtDecode(token)
+      const decoded: JwtPayload = jwtDecode(token)
       if (decoded.exp && Date.now() >= decoded.exp * 1000) {
         // Token expired
         localStorage.removeItem("accessToken")
@@ -69,7 +69,7 @@ export default function Home() {
     }
 
     // Validate token with backend
-    fetch("/api/auth/me", {
+    fetch("http://localhost:8080/api/auth/me", {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => {
