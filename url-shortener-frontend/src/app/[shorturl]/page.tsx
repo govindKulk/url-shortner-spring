@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 
-export default async function Page({ params }: { params: { shorturl: string } }) {
+export default async function Page({ params }: { params: Promise<{ shorturl: string }> }) {
+
+  const {shorturl} = await params;
   // Call the backend directly from the server
-  const res = await fetch(`http://localhost:8080/api/urls/${params.shorturl}`, {
+  const res = await fetch(`http://localhost:8080/api/urls/${shorturl}`, {
     // Don't follow redirects automatically
     redirect: "manual",
   });
