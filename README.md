@@ -31,7 +31,7 @@ A modern, full-stack URL shortener built with Spring Boot microservices, Postgre
 
 1. **Clone the repo:**
    ```sh
-   git clone <your-repo-url>
+   git clone https://github.com/govindKulk/url-shortner-spring
    cd url-shortner-spring
    ```
 2. **Build all JARs:**
@@ -55,7 +55,7 @@ A modern, full-stack URL shortener built with Spring Boot microservices, Postgre
    # Visit http://localhost:3000
    ```
 
-## ⚡ Quick Links
+## ⚡ Quick Links For Local Testing
 - API Gateway: [http://localhost:8080](http://localhost:8080)
 - User Service: [http://localhost:8081](http://localhost:8081)
 - URL Service: [http://localhost:8082](http://localhost:8082)
@@ -64,4 +64,8 @@ A modern, full-stack URL shortener built with Spring Boot microservices, Postgre
 
 ---
 
-> 📝 **Tip:** All config is managed via environment variables and `application.yml` files. See each service for details. 
+> 📝 **Tip:** All config is managed via environment variables and `application.yml` files. See each service for details.
+
+## Developer
+- [Govind Kulkarni](https://govinkulkarni.me)
+- [Email](mailto:kulkarnigovind2003@gmail.com)
