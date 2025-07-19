@@ -24,7 +24,7 @@ spring:
           globalcors:
             cors-configurations:
               '[/**]':
-                allowed-origins: "http://localhost:3000"
+                allowed-origins: ["http://localhost:3000", "https://url-shortner-spring.vercel.app"]
                 allowed-methods:
                   - GET
                   - POST
