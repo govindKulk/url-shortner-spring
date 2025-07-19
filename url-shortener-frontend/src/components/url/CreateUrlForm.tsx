@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createUrlSchema } from "@/lib/validations"
-import { type CreateUrlRequest } from "@/types"
+import { CreateUrlRequest } from "@/types"
 import { apiService } from "@/lib/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner"
 import { Loader2, Link, Copy, Check } from "lucide-react"
 import { copyToClipboard } from "@/lib/utils"
+
+// New type for form data
+interface CreateUrlFormData {
+  protocol: string;
+  originalUrl: string;
+}
 
 interface CreateUrlFormProps {
   onUrlCreated: () => void
@@ -27,19 +33,34 @@ export function CreateUrlForm({ onUrlCreated }: CreateUrlFormProps) {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<CreateUrlRequest>({
-    resolver: zodResolver(createUrlSchema),
+  } = useForm<{ protocol: string; originalUrl: string }>({
+    defaultValues: { protocol: "https://", originalUrl: "" },
   })
 
-  const onSubmit = async (data: CreateUrlRequest) => {
+  const onSubmit = async (data: { protocol: string; originalUrl: string }) => {
+    
     setIsLoading(true)
     try {
-      const response = await apiService.createShortUrl(data)
+      let url = data.originalUrl.trim()
+      // Only prepend protocol if not already present
+      if (!/^https?:\/\//i.test(url)) {
+        url = data.protocol + url
+      }
+
+      // Manual validation for originalUrl
+    const validation = createUrlSchema.safeParse({ originalUrl: url })
+    if (!validation.success) {
+      toast.error(validation.error.errors[0]?.message || "Invalid URL")
+      setIsLoading(false);
+      return;
+    }
+
+      const response = await apiService.createShortUrl({ originalUrl: url })
       
       if (response.success) {
         setCreatedUrl(response.shortUrl)
         toast.success("URL shortened successfully!")
-        reset()
+        reset({ protocol: "https://", originalUrl: "" })
         onUrlCreated()
       } else {
         toast.error(response.message || "Failed to create short URL")
@@ -74,11 +95,22 @@ export function CreateUrlForm({ onUrlCreated }: CreateUrlFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Input
-              {...register("originalUrl")}
-              placeholder="https://example.com/very-long-url-that-needs-shortening"
-              disabled={isLoading}
-            />
+            <div className="flex items-center gap-2">
+              <select
+                {...register("protocol")}
+                defaultValue="https://"
+                className="h-10 px-2 rounded-l border border-gray-300 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                style={{ width: '80px', minWidth: '60px', maxWidth: '100px' }}
+              >
+                <option value="https://">https</option>
+                <option value="http://">http</option>
+              </select>
+              <Input
+                {...register("originalUrl")}
+                placeholder="example.com/very-long-url-that-needs-shortening"
+                disabled={isLoading}
+              />
+            </div>
             {errors.originalUrl && (
               <p className="text-sm text-red-500">{errors.originalUrl.message}</p>
             )}
