@@ -65,3 +65,28 @@ A modern, full-stack URL shortener built with Spring Boot microservices, Postgre
 ---
 
 > 📝 **Tip:** All config is managed via environment variables and `application.yml` files. See each service for details. 
+
+## 📚 Documentation
+- [Backend Architecture & Service Details](./backend-architecture.md)
+
+---
+
+## 🖼️ Screenshots
+
+### 🔐 Login Screen
+![Login Screen](./screenshots/login-screen.png)
+
+### 📝 Signup Screen
+![Signup Screen](./screenshots/signup-screen.png)
+
+### 🗂️ Eureka Client Dashboard
+![Eureka Client Dashboard](./screenshots/eureka-client-dashboard.png)
+
+### 📊 URL Shortener Dashboard
+![URL Shortener Dashboard](./screenshots/url-shortener-dashboard.png)
+
+---
+
+## 📝 Note on Frontend
+
+The frontend (Next.js) is intentionally minimalistic, as the primary focus of this project was to learn and demonstrate Spring Boot microservices architecture and backend best practices. 
